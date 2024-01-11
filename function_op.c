@@ -2,52 +2,65 @@
 
 /**
  * f_push - Function that adds an element to a stack
- * @head: The pointer to address of head node of a stack
- * @number: Number of nodes to be added to the list 
+ * @stack: The pointer to address of head node of a stack
+ * @line_number: working line number of a Monty Bytecode file
  */
-
-void f_push(stack_t **head, unsigned int number)
+void f_push(stack_t **stack, unsigned int line_number)
 {
-	stack_t *node;
-	(void)number;
+	int x;
+	stack_t *tmp, *new;
 
-	node = malloc(sizeof(stack_t));
-	if (node == NULL)
+	new = malloc(sizeof(stack_t));
+	if (new == NULL)
 	{
-		fprintf(stderr, "Error: malloc failed\n");
-		free(load.buf);
-		fclose(load.file);
-		exit(EXIT_FAILURE);
+		set_op_tok_error(malloc_error());
+		return;
 	}
-	node->prev = NULL;
-	node->n = load.data;
-	if (*head == NULL)
+	if (op_toks[1] == NULL)
 	{
-		*head = node;
-		node->next = NULL;
-	}
-	else
+		set_op_tok_error(no_int_error(line_number));
+		return;
+	} for (x = 0; op_toks[1][x]; x++)
 	{
-		(*head)->prev = node;
-		node->next = *head;
-		*head = node;
+		if (op_toks[1][x] == '-' && x == 0)
+			continue;
+		if (op_toks[1][x] < '0' || op_toks[1][x] > '9')
+		{
+			set_op_tok_error(no_int_error(line_number));
+			return;
+		}
+	} new->n = atoi(op_toks[1]);
+	if (check_mode(*stack) == STACK)
+	{
+		tmp = (*stack)->next;
+		new->prev = *stack;
+		new->next = tmp;
+		if (tmp)
+			tmp->prev = new;
+		(*stack)->next = new;
+	} else
+	{
+		tmp = *stack;
+		while (tmp->next)
+			tmp = tmp->next;
+			new->prev = tmp;
+			new->next = NULL;
+			tmp->next = new;
 	}
 }
-
 /**
  * f_pall - Function that prints all members of a stack
- * @head: The pointer to address of head node of a stack
- * @number: number of nodes to be added to the list 
+ * @stack: The pointer to address of head node of a stack
+ * @line_number: Current working line number of Monty Bytecodes file
  */
-
-void f_pall(stack_t **head, unsigned int number)
+void f_pall(stack_t **stack, unsigned int line_number)
 {
-	stack_t *node = *head;
-	(void)number;
+	stack_t *tmp = (*stack)->next;
 
-	while (node != NULL)
+	while (tmp)
 	{
-		printf("%d\n", node->n);
-		node = node->next;
+		printf("%d\n", tmp->n);
+		tmp = tmp->next;
 	}
+	(void)line_number;
 }
